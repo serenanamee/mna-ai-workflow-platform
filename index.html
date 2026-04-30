@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>168 M&A Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo"><span class="hdr-num">168</span> M&A Platform</div>
+  <nav class="hdr-nav">
+    <button class="hdr-tab on" onclick="switchView('pipeline',this)">Pipeline</button>
+    <button class="hdr-tab" onclick="switchView('analysis-hub',this)">Analysis Hub</button>
+    <button class="hdr-tab" onclick="switchView('memo',this)">Memo Generator</button>
+  </nav>
+  <div class="hdr-right">
+    <div class="api-wrap">
+      <div class="api-dot mock" id="api-dot"></div>
+      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-… (optional)" oninput="checkKey()">
+      <span id="mode-label">Demo Mode</span>
+    </div>
+  </div>
+</header>
+
+<!-- DEMO NOTICE -->
+<div class="demo-notice">
+  <b>Demo Mode</b> — Full workflow runs with pre-built responses. Add an Anthropic API key above for live Claude output.
+  In production, API calls are proxied through a backend server; the key is never exposed client-side.
+</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-section">Leads</div>
+    <div id="sb-list"></div>
+    <div class="sb-add" onclick="openAddLeadModal()">+ Add Lead</div>
+    <div class="sb-section" style="margin-top:6px">Quick Actions</div>
+    <div class="sb-item" onclick="switchView('analysis-hub',null)"><span>Run Analysis</span></div>
+    <div class="sb-item" onclick="switchView('memo',null);prefillMemo()"><span>Generate Memo</span></div>
+  </aside>
+
+  <main class="main-area">
+
+    <!-- ════ PIPELINE ════ -->
+    <div id="view-pipeline" class="view on" style="padding:0;max-width:100%">
+      <div class="pipeline-strip">
+        <div class="ps-stage on" onclick="filterPipeline('all',this)">All <span class="ps-count" id="pc-all"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Leads',this)">Leads <span class="ps-count" id="pc-Leads"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Contacted',this)">Contacted <span class="ps-count" id="pc-Contacted"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Qualified',this)">Qualified <span class="ps-count" id="pc-Qualified"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('In Analysis',this)">In Analysis <span class="ps-count" id="pc-In-Analysis"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Deal',this)">Deal <span class="ps-count" id="pc-Deal"></span></div>
+      </div>
+      <div id="po-grid" class="po-grid"></div>
+    </div>
+
+    <!-- ════ LEAD DETAIL ════ -->
+    <div id="view-lead" style="display:none">
+      <div class="lead-detail-header">
+        <div class="ldh-name" id="ld-name">—</div>
+        <div class="ldh-meta" id="ld-meta">—</div>
+        <div class="ldh-actions">
+          <button class="btn btn-outline btn-sm" onclick="advStage()">Advance Stage</button>
+          <button class="btn btn-ink btn-sm" onclick="goRunAnalysis()">Run AI Analysis</button>
+          <button class="btn btn-outline btn-sm" onclick="switchView('memo',null);prefillMemo()">Generate Memo</button>
+          <button class="btn btn-outline btn-sm" onclick="switchView('pipeline',null);renderPipeline()">Back to Pipeline</button>
+        </div>
+      </div>
+
+      <!-- Qualified suggestion banner -->
+      <div class="suggestion-banner" id="qualified-banner" style="display:none">
+        <span>This lead is <b>Qualified</b> — ready for AI analysis. Running analysis now will auto-populate the company report and advance to In Analysis.</span>
+        <button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">Run Analysis</button>
+      </div>
+
+      <div class="ldh-tabs">
+        <div class="ldh-tab on" onclick="switchDetailTab('overview',this)">Overview</div>
+        <div class="ldh-tab" onclick="switchDetailTab('analysis',this)">AI Analysis</div>
+        <div class="ldh-tab" onclick="switchDetailTab('notes',this)">Interaction Log</div>
+      </div>
+
+      <div class="detail-tab-body">
+        <!-- Overview -->
+        <div class="dtab-content on" id="dt-overview">
+          <div class="card">
+            <div class="ch"><span class="ch-label">Company Details</span></div>
+            <div class="cb" id="ld-details"></div>
+          </div>
+          <div class="card">
+            <div class="ch"><span class="ch-label">Pipeline Progress</span></div>
+            <div class="cb">
+              <div class="flow-row" id="ld-flow"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis -->
+        <div class="dtab-content" id="dt-analysis">
+          <div id="no-analysis" style="border:1px dashed var(--gl);padding:2rem;text-align:center;color:var(--muted);font-size:.84rem">
+            No analysis run yet.
+            <div style="margin-top:.75rem"><button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">Run AI Analysis</button></div>
+          </div>
+          <div id="has-analysis" style="display:none">
+            <div class="result-grid">
+              <div class="rb"><div class="rb-h">Company Overview</div><div class="rb-b" id="ra-overview">—</div></div>
+              <div class="rb"><div class="rb-h">Key Risks</div><div class="rb-b" id="ra-risks">—</div></div>
+              <div class="rb"><div class="rb-h">Valuation Reference</div><div class="rb-b" id="ra-valuation">—</div></div>
+              <div class="rb"><div class="rb-h">Suggested Buyer Profile</div><div class="rb-b" id="ra-buyers">—</div></div>
+            </div>
+            <div class="rb"><div class="rb-h">Due Diligence Checklist</div><div class="rb-b" id="ra-dd">—</div></div>
+            <div class="btn-row">
+              <button class="btn btn-ink btn-sm" onclick="switchView('memo',null);prefillMemo()">Generate Memo</button>
+              <button class="btn btn-outline btn-sm" onclick="goRunAnalysis()">Re-run Analysis</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="dtab-content" id="dt-notes">
+          <div class="card">
+            <div class="ch"><span class="ch-label">Interaction Log</span>
+              <button class="btn btn-outline btn-sm" onclick="addNote()">Add Note</button>
+            </div>
+            <div class="cb" id="ld-notes"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ ANALYSIS HUB ════ -->
+    <div id="view-analysis-hub" class="view">
+      <div class="view-title">Analysis Hub</div>
+      <div class="view-sub">Upload company financials or paste data. The system enriches with public information via Manus, then Claude generates a structured analysis — company overview, key risks, valuation reference, and due diligence checklist.</div>
+
+      <div class="flow-row" style="gap:0">
+        <div class="fs active-fs" id="hf1"><div class="fs-n">01</div><div class="fs-t">Upload Data</div><div class="fs-d">PDF or text input</div></div>
+        <div class="fa">›</div>
+        <div class="fs" id="hf2"><div class="fs-n">02</div><div class="fs-t">Manus Enrichment</div><div class="fs-d">Public data, registry, news</div></div>
+        <div class="fa">›</div>
+        <div class="fs" id="hf3"><div class="fs-n">03</div><div class="fs-t">Claude Analysis</div><div class="fs-d">Metrics, risks, valuation</div></div>
+        <div class="fa">›</div>
+        <div class="fs" id="hf4"><div class="fs-n">04</div><div class="fs-t">Structured Output</div><div class="fs-d">Report ready for review</div></div>
+        <div class="fa">›</div>
+        <div class="fs" id="hf5"><div class="fs-n">05</div><div class="fs-t">Save to CRM</div><div class="fs-d">Linked to Lead card</div></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><span class="ch-label">Company Input</span></div>
+        <div class="cb">
+          <div class="r2">
+            <div class="field"><label class="fl">Company Name</label><input type="text" id="h-company" placeholder="e.g. ABC Manufacturing Co."></div>
+            <div class="field"><label class="fl">Industry</label><input type="text" id="h-industry" placeholder="e.g. Precision Manufacturing"></div>
+          </div>
+          <div class="field">
+            <label class="fl">Upload Financial PDF</label>
+            <div class="upzone">
+              <input type="file" accept=".pdf" onchange="handlePdf(this)">
+              <div class="up-icon">PDF</div>
+              <div class="up-lbl">Click or drag to upload</div>
+              <div class="up-hint">Annual report · Financial summary · Any PDF</div>
+              <div class="file-tag" id="h-filetag"></div>
+            </div>
+          </div>
+          <div class="field"><label class="fl">Or paste financial data / notes</label>
+            <textarea id="h-text" rows="4" placeholder="Revenue: NT$450M (+18% YoY)&#10;Net income: NT$38M · EBITDA: NT$72M&#10;Key clients: Client A (35%), Client B (22%)&#10;Founded 1998 · 280 employees…"></textarea>
+          </div>
+          <div class="r2">
+            <div class="field"><label class="fl">Analysis Focus</label><input type="text" id="h-focus" placeholder="e.g. Customer concentration, cashflow quality"></div>
+            <div class="field"><label class="fl">Transaction Type</label>
+              <select id="h-type"><option value="full_acquisition">Full Acquisition</option><option value="partial">Partial Stake</option><option value="merger">Merger</option><option value="partnership">Strategic Partnership</option></select>
+            </div>
+          </div>
+          <button class="btn btn-ink" id="h-btn" onclick="runHubAnalysis()">Run Analysis</button>
+        </div>
+      </div>
+
+      <div id="h-loading" style="display:none"></div>
+
+      <div id="h-results" style="display:none">
+        <div class="card">
+          <div class="ch">
+            <span class="ch-label">Analysis Output — <span id="h-res-name"></span></span>
+            <button class="btn btn-gold btn-sm" onclick="saveAnalysisToCrm()">Save to CRM</button>
+          </div>
+          <div class="cb">
+            <div class="result-grid">
+              <div class="rb"><div class="rb-h">Company Overview</div><div class="rb-b" id="hr-overview">—</div></div>
+              <div class="rb"><div class="rb-h">Key Risks</div><div class="rb-b" id="hr-risks">—</div></div>
+              <div class="rb"><div class="rb-h">Valuation Reference</div><div class="rb-b" id="hr-valuation">—</div></div>
+              <div class="rb"><div class="rb-h">Suggested Buyer Profile</div><div class="rb-b" id="hr-buyers">—</div></div>
+            </div>
+            <div class="rb"><div class="rb-h">Due Diligence Checklist</div><div class="rb-b" id="hr-dd">—</div></div>
+            <div class="btn-row">
+              <button class="btn btn-ink btn-sm" onclick="saveAnalysisToCrm();switchView('memo',null);prefillMemo()">Save and Generate Memo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ MEMO GENERATOR ════ -->
+    <div id="view-memo" class="view">
+      <div class="view-title">Memo Generator</div>
+      <div class="view-sub">Generate a structured investment memo, seller teaser, or due diligence report. Data is pre-filled from the active lead's AI analysis — or enter manually.</div>
+      <div class="card">
+        <div class="ch"><span class="ch-label">Document Input</span></div>
+        <div class="cb">
+          <div class="r2">
+            <div class="field"><label class="fl">Company Name</label><input type="text" id="m-company" placeholder="Company name"></div>
+            <div class="field"><label class="fl">Document Type</label>
+              <select id="m-type"><option value="investment_memo">Investment Memo</option><option value="seller_teaser">Seller Teaser</option><option value="buyer_brief">Buyer Brief</option><option value="dd_report">Due Diligence Report</option></select>
+            </div>
+          </div>
+          <div class="field"><label class="fl">Key Information / Analysis Summary</label>
+            <textarea id="m-data" rows="6" placeholder="Paste analysis output or enter manually:&#10;&#10;Revenue: NT$450M · EBITDA: NT$72M&#10;Industry: Precision Manufacturing&#10;Key risks: customer concentration&#10;Asking range: NT$800M–1.2B…"></textarea>
+          </div>
+          <div class="r2">
+            <div class="field"><label class="fl">Target Audience</label>
+              <select id="m-audience"><option value="strategic_buyer">Strategic Buyer</option><option value="pe_fund">PE / Investment Fund</option><option value="management_team">Management Team</option><option value="board">Board / Owner</option></select>
+            </div>
+            <div class="field"><label class="fl">Language</label>
+              <select id="m-lang"><option value="en">English</option><option value="zh">Traditional Chinese</option></select>
+            </div>
+          </div>
+          <button class="btn btn-ink" id="m-btn" onclick="runMemo()">Generate Document</button>
+        </div>
+      </div>
+      <div id="m-loading" style="display:none"><div class="loading-row"><div class="spinner"></div>Drafting document…</div></div>
+      <div id="m-output" style="display:none">
+        <div class="card">
+          <div class="ch"><span class="ch-label" id="m-output-label">Document Output</span>
+            <button class="btn btn-outline btn-sm" onclick="copyMemo()">Copy Text</button>
+          </div>
+          <div class="memo-box" id="m-text"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="add-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Add New Lead</div>
+    <div class="r2">
+      <div class="field"><label class="fl">Company Name *</label><input type="text" id="nl-name" placeholder="Company name"></div>
+      <div class="field"><label class="fl">Industry</label><input type="text" id="nl-industry" placeholder="Industry"></div>
+    </div>
+    <div class="r2">
+      <div class="field"><label class="fl">Stage</label>
+        <select id="nl-stage"><option>Leads</option><option>Contacted</option><option>Qualified</option><option>In Analysis</option><option>Deal</option></select>
+      </div>
+      <div class="field"><label class="fl">Contact Person</label><input type="text" id="nl-contact" placeholder="Owner / rep"></div>
+    </div>
+    <div class="r2">
+      <div class="field"><label class="fl">Revenue (est.)</label><input type="text" id="nl-revenue" placeholder="NT$XXM"></div>
+      <div class="field"><label class="fl">Employees (est.)</label><input type="text" id="nl-emp" placeholder="Number"></div>
+    </div>
+    <div class="field"><label class="fl">Initial Notes</label><textarea id="nl-notes" rows="2" placeholder="Referral source, first impression…"></textarea></div>
+    <div style="display:flex;gap:.75rem;margin-top:.5rem">
+      <button class="btn btn-ink" onclick="submitAddLead()">Add Lead</button>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS (order matters) -->
+<script src="data/sampleLeads.js"></script>
+<script src="services/crm.js"></script>
+<script src="services/claude.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
