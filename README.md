@@ -1,76 +1,187 @@
 # M&A AI Workflow Platform
 
-A prototype system that connects CRM pipeline management, AI-assisted company analysis, and investment memo generation into one end-to-end workflow.
-
-Built to demonstrate how an M&A advisory firm can systematise the process of lead management, due diligence, and document production using Claude (Anthropic) and Manus AI.
+Live Demo:  
+https://serenanamee.github.io/mna-ai-workflow-platform/
 
 ---
 
-## What It Does
+## Overview
 
-```
-Lead Generation  →  Company Analysis  →  Document Output  →  Deal Execution
-     CRM              Analysis Hub         Memo Generator       CRM Pipeline
-```
+A prototype system that transforms fragmented M&A advisory tasks into a structured, AI-supported workflow.
 
-**Pipeline (CRM)**
-- Kanban view across five stages: Leads → Contacted → Qualified → In Analysis → Deal
-- Lead cards with company details, interaction log, and analysis status
-- Auto-suggestion to run AI analysis when a lead reaches Qualified
-- One-click to advance stage, add notes, or trigger analysis
+Instead of treating AI as a standalone tool, this project focuses on turning repetitive advisory work — such as company analysis, due diligence, and document generation — into a systemised process that can scale beyond individual consultants.
 
-**Analysis Hub**
-- Input: company name, industry, financial data (PDF or text), transaction type
-- Step 1: Manus enrichment — fetches public data (website, news, business registry, industry peers)
-- Step 2: Claude analysis — generates structured report (overview, risks, valuation, buyer profile, DD checklist)
-- Output saves directly to the linked CRM lead card, advancing stage to In Analysis
+Built to demonstrate how an M&A firm can move from manual, experience-driven execution to a workflow where data, analysis, and decisions are continuously structured, reused, and connected.
 
-**Memo Generator**
-- Generates investment memo, seller teaser, buyer brief, or due diligence report
-- Pre-fills from the active lead's AI analysis — no copy-paste required
-- Supports English and Traditional Chinese output
+---
+
+## Workflow
+
+This system is designed around how M&A advisory work actually happens:
+
+Business Development  
+→ Leads are created and tracked in a CRM pipeline  
+
+Company Analysis  
+→ Financial data and company materials are uploaded  
+→ AI extracts key insights, risks, and valuation references  
+
+Structured Output  
+→ Analysis is converted into reusable formats (reports, checklists, buyer profiles)  
+
+Deal Execution  
+→ Outputs feed directly into investment memos, teasers, and transaction documents  
+
+Each step is connected, allowing information to flow across the pipeline instead of being recreated manually.
+
+---
+
+## End-to-End Flow
+
+The system connects business development, analysis, and execution into a single workflow:
+
+1. Lead Creation  
+   A new company is created and tracked in the CRM pipeline  
+
+2. Data Input  
+   Financial statements and company materials are uploaded  
+
+3. Data Handling  
+   Documents are stored (e.g. GCP / AWS) and prepared for processing  
+
+4. Data Enrichment  
+   Public information is retrieved via Manus AI to supplement internal data  
+
+5. AI Analysis  
+   Claude processes both internal documents and enriched data  
+
+6. Structured Output  
+   The system generates:
+   - Company overview  
+   - Risk factors  
+   - Valuation reference  
+   - Buyer profile suggestions  
+   - Due diligence checklist  
+
+7. CRM Integration  
+   Analysis results are written back to the corresponding CRM lead  
+
+8. Advisor Workflow  
+   Advisors review, edit, and move the deal through pipeline stages  
+
+9. Document Generation  
+   Investment memo or teaser is generated directly from analysis results  
+
+---
+
+## System Modules
+
+### CRM Pipeline
+
+- Kanban-based pipeline: Leads → Contacted → Qualified → In Analysis → Deal  
+- Lead cards with company data, interaction logs, and AI analysis status  
+- Stage-based workflow with triggerable AI analysis  
+- Designed for business development and deal tracking  
+
+---
+
+### Analysis Hub
+
+- Input: company name, industry, financial data (PDF or text), transaction type  
+
+- AI workflow:
+  - Public data enrichment (Manus AI - simulated)
+  - Financial and business analysis (Claude)
+
+- Output:
+  - Company overview  
+  - Risk factors  
+  - Valuation reference  
+  - Buyer profile suggestions  
+  - Due diligence checklist  
+
+- Results are structured and saved back into CRM  
+
+---
+
+### Memo Generator
+
+- Generates:
+  - Investment memo  
+  - Seller teaser  
+  - Buyer brief  
+  - Due diligence report  
+
+- Auto-filled from AI analysis results  
+- Eliminates manual copy-paste between documents  
+- Supports English and Traditional Chinese  
+
+---
+
+## Why This Matters
+
+In traditional M&A workflows, most work is:
+
+- Repetitive (reading financials, summarising, drafting documents)  
+- Fragmented (spread across documents, emails, and spreadsheets)  
+- Dependent on individual experience  
+
+This system reframes the workflow into:
+
+- Structured inputs (company data, financials)  
+- Repeatable AI-assisted processing  
+- Standardised outputs that can be reviewed, edited, and reused  
+
+The goal is not full automation from day one, but to progressively reduce manual workload and make advisory processes scalable.
 
 ---
 
 ## Demo Mode
 
-The platform runs in **Demo Mode** by default (no API key required). Pre-built responses demonstrate the full workflow including the Manus enrichment step and Claude analysis output.
+The platform runs in Demo Mode by default (no API key required).
 
-To enable live AI output, add an Anthropic API key in the header input.
+Pre-built responses simulate:
+- Manus data enrichment  
+- Claude analysis outputs  
+
+To enable live AI output:
+- Add an Anthropic API key in the header input  
 
 ---
 
 ## Architecture
 
+The prototype follows a modular frontend architecture:
+
+```plaintext
+UI Layer
+- index.html
+- styles.css
+
+Application Layer
+- app.js (routing, rendering, interaction logic)
+
+State Layer
+- crm.js (centralised appState, pipeline logic)
+
+AI Layer
+- claude.js (analysis, mock/live mode)
+
+Data Layer
+- sampleLeads.js (initial dataset)
 ```
-index.html          — App shell and view templates
-styles.css          — All styles
-app.js              — Navigation, view rendering, event handlers
+API Key Security
 
-data/
-  sampleLeads.js    — Initial CRM data
+`This prototype calls the Anthropic API directly from the browser for demonstration purposes.`
 
-services/
-  crm.js            — Centralised state (appState), lead CRUD, stage logic
-  claude.js         — Claude API calls, mock mode, safe JSON parser
+In production:
+
+Browser → Backend (/api/analyze) → Anthropic API
+API keys stored securely in backend (.env)
+Backend acts as proxy to prevent exposure
+
+Example (Express proxy):
 ```
-
-### API Key Security
-
-> **This prototype calls the Anthropic API directly from the browser for demonstration purposes only.**
-
-In production, the architecture should be:
-
-```
-Browser  →  POST /api/analyze (your backend)  →  Anthropic API
-```
-
-The backend stores `ANTHROPIC_API_KEY` in `.env` and proxies requests to Anthropic. This prevents the key from being exposed client-side.
-
-A simple Express proxy example:
-
-```js
-// server.js
 app.post('/api/analyze', async (req, res) => {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -81,52 +192,40 @@ app.post('/api/analyze', async (req, res) => {
     },
     body: JSON.stringify(req.body),
   });
+
   const data = await response.json();
   res.json(data);
 });
 ```
-
----
-
-## Running Locally
-
-No build step required. Open `index.html` directly in a browser, or serve with any static file server:
-
-```bash
-npx serve .
-# or
-python3 -m http.server 3000
-```
-
 ---
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML · CSS · Vanilla JS |
-| AI Analysis | Claude (Anthropic) — `claude-sonnet-4-20250514` |
-| Public Enrichment | Manus AI (simulated in prototype) |
-| State Management | Centralised `appState` object |
-| Deployment | Any static host (Render, Netlify, GitHub Pages) |
+| Layer             | Technology |
+|------------------|-----------|
+| Frontend         | HTML · CSS · Vanilla JS |
+| AI Analysis      | Claude (Anthropic) |
+| Data Enrichment  | Manus AI (simulated) |
+| State Management | Centralised appState |
+| Deployment       | GitHub Pages |
 
 ---
 
 ## Roadmap
 
-- [ ] Backend proxy for API key security
-- [ ] Real Manus API integration for public data enrichment
-- [ ] Persistent storage (database / Supabase)
-- [ ] Export reports as PDF
-- [ ] Multi-user access with role separation (advisor / BD)
-- [ ] Audit trail for AI outputs (source-linked, Claude FS compatible)
+- Integrate full multi-step AI analysis (DD, matching, valuation)
+- Automate AI trigger based on CRM stage transitions
+- Add persistent database (Supabase / PostgreSQL)
+- Enable multi-user roles (Advisor / BD)
+- Export reports (PDF / structured documents)
+- Integrate real external data enrichment (Manus API)
 
 ---
 
 ## Author
 
-Built by **Serena Chang** as a portfolio demonstration for the 168 M&A Platform AI Application Specialist role.
+Built by Serena Chang as a portfolio project for AI Application / Workflow Engineering roles.
 
-- GitHub: [github.com/serenanamee](https://github.com/serenanamee)
-- LinkedIn: [linkedin.com/in/ixserena169](https://linkedin.com/in/ixserena169)
-- Medium: [medium.com/@serenamee](https://medium.com/@serenamee)
+- GitHub: https://github.com/serenanamee  
+- LinkedIn: https://www.linkedin.com/in/ixserena169/s  
+- Medium: https://medium.com/@serenamee  
