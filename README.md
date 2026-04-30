@@ -1,5 +1,8 @@
 # M&A AI Workflow Platform
 
+Live Demo:  
+https://serenanamee.github.io/mna-ai-workflow-platform/
+
 An end-to-end system that transforms manual M&A advisory work into a structured, AI-assisted workflow.
 
 This prototype demonstrates how deal sourcing, company analysis, and document generation can be connected into a single system — reducing manual effort and improving scalability.
