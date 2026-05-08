@@ -29,7 +29,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 /* LAYOUT */
 .shell { display: flex; height: calc(100vh - 52px); }
 .sidebar { width: 240px; background: var(--cream); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-.main-area { flex: 1; overflow-y: auto; }
+.main-area { flex: 1; overflow-y: auto; min-width: 0; }
 
 /* SIDEBAR */
 .sb-section { padding: 12px 14px 5px; font-family: 'JetBrains Mono', monospace; font-size: .58rem; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; }
