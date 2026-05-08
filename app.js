@@ -32,10 +32,21 @@ function getApiKey() {
 
 // ═══ NAVIGATION ════════════════════════════════════════════════════
 function switchView(name, tabEl) {
-  document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; v.classList.remove('on'); });
+  document.querySelectorAll('.view').forEach(v => {
+    v.style.display = 'none';
+    v.classList.remove('on');
+  });
   document.getElementById('view-lead').style.display = 'none';
-  const v = document.getElementById('view-' + name);
-  if (v) { v.style.display = 'block'; v.classList.add('on'); }
+
+  if (name === 'pipeline') {
+    const v = document.getElementById('view-pipeline');
+    v.style.display = 'block';
+    v.classList.add('on');
+  } else {
+    const v = document.getElementById('view-' + name);
+    if (v) { v.style.display = 'block'; v.classList.add('on'); }
+  }
+
   if (tabEl) {
     document.querySelectorAll('.hdr-tab').forEach(b => b.classList.remove('on'));
     tabEl.classList.add('on');
