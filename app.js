@@ -10,6 +10,7 @@ let activeDetailTab = 'overview';
 // ═══ INIT ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   initCRM();
+  document.getElementById('view-pipeline').style.display = 'block';
   renderPipeline();
   renderSidebar();
   checkKey();
