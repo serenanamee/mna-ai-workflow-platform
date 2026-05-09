@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>168 M&A Platform</title>
+<title>168 企業併購平台</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,120 +11,120 @@
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-logo"><span class="hdr-num">168</span> M&A Platform</div>
+  <div class="hdr-logo"><span class="hdr-num">168</span> 企業併購平台</div>
   <nav class="hdr-nav">
-    <button class="hdr-tab on" onclick="switchView('pipeline',this)">Pipeline</button>
-    <button class="hdr-tab" onclick="switchView('analysis-hub',this)">Analysis Hub</button>
-    <button class="hdr-tab" onclick="switchView('memo',this)">Memo Generator</button>
+    <button class="hdr-tab on" onclick="switchView('pipeline',this)">案件管線</button>
+    <button class="hdr-tab" onclick="switchView('analysis-hub',this)">AI 分析中心</button>
+    <button class="hdr-tab" onclick="switchView('memo',this)">文件生成</button>
   </nav>
   <div class="hdr-right">
     <div class="api-wrap">
       <div class="api-dot mock" id="api-dot"></div>
-      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-… (optional)" oninput="checkKey()">
-      <span id="mode-label">Demo Mode</span>
+      <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-… （選填）" oninput="checkKey()">
+      <span id="mode-label">示範模式</span>
     </div>
   </div>
 </header>
 
 <!-- DEMO NOTICE -->
 <div class="demo-notice">
-  <b>Demo Mode</b> — Full workflow runs with pre-built responses. Add an Anthropic API key above for live Claude output.
-  In production, API calls are proxied through a backend server; the key is never exposed client-side.
+  <b>示範模式</b> — 完整流程使用預設回應執行。輸入 Anthropic API Key 可啟用即時 Claude 輸出。
+  正式環境中，API 呼叫會透過後端伺服器代理，金鑰不會暴露於前端。
 </div>
 
 <div class="shell">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sb-section">Leads</div>
+    <div class="sb-section">案件列表</div>
     <div id="sb-list"></div>
-    <div class="sb-add" onclick="openAddLeadModal()">+ Add Lead</div>
-    <div class="sb-section" style="margin-top:6px">Quick Actions</div>
-    <div class="sb-item" onclick="switchView('analysis-hub',null)"><span>Run Analysis</span></div>
-    <div class="sb-item" onclick="switchView('memo',null);prefillMemo()"><span>Generate Memo</span></div>
+    <div class="sb-add" onclick="openAddLeadModal()">+ 新增案件</div>
+    <div class="sb-section" style="margin-top:6px">快捷操作</div>
+    <div class="sb-item" onclick="switchView('analysis-hub',null)"><span>執行 AI 分析</span></div>
+    <div class="sb-item" onclick="switchView('memo',null);prefillMemo()"><span>生成文件</span></div>
   </aside>
 
   <main class="main-area">
 
-    <!-- ════ PIPELINE ════ -->
+    <!-- ════ 案件管線 ════ -->
     <div id="view-pipeline" class="view on" style="padding:0;max-width:100%">
       <div class="pipeline-strip">
-        <div class="ps-stage on" onclick="filterPipeline('all',this)">All <span class="ps-count" id="pc-all"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('Leads',this)">Leads <span class="ps-count" id="pc-Leads"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('Contacted',this)">Contacted <span class="ps-count" id="pc-Contacted"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('Qualified',this)">Qualified <span class="ps-count" id="pc-Qualified"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('In Analysis',this)">In Analysis <span class="ps-count" id="pc-In-Analysis"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('Deal',this)">Deal <span class="ps-count" id="pc-Deal"></span></div>
+        <div class="ps-stage on" onclick="filterPipeline('all',this)">全部 <span class="ps-count" id="pc-all"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Leads',this)">名單 <span class="ps-count" id="pc-Leads"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Contacted',this)">已接觸 <span class="ps-count" id="pc-Contacted"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Qualified',this)">已評估 <span class="ps-count" id="pc-Qualified"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('In Analysis',this)">分析中 <span class="ps-count" id="pc-In-Analysis"></span></div>
+        <div class="ps-stage" onclick="filterPipeline('Deal',this)">成交 <span class="ps-count" id="pc-Deal"></span></div>
       </div>
       <div id="po-grid" class="po-grid"></div>
     </div>
 
-    <!-- ════ LEAD DETAIL ════ -->
+    <!-- ════ 案件詳情 ════ -->
     <div id="view-lead" style="display:none">
       <div class="lead-detail-header">
         <div class="ldh-name" id="ld-name">—</div>
         <div class="ldh-meta" id="ld-meta">—</div>
         <div class="ldh-actions">
-          <button class="btn btn-outline btn-sm" onclick="advStage()">Advance Stage</button>
-          <button class="btn btn-ink btn-sm" onclick="goRunAnalysis()">Run AI Analysis</button>
-          <button class="btn btn-outline btn-sm" onclick="switchView('memo',null);prefillMemo()">Generate Memo</button>
-          <button class="btn btn-outline btn-sm" onclick="switchView('pipeline',null);renderPipeline()">Back to Pipeline</button>
+          <button class="btn btn-outline btn-sm" onclick="advStage()">推進階段</button>
+          <button class="btn btn-ink btn-sm" onclick="goRunAnalysis()">執行 AI 分析</button>
+          <button class="btn btn-outline btn-sm" onclick="switchView('memo',null);prefillMemo()">生成備忘錄</button>
+          <button class="btn btn-outline btn-sm" onclick="switchView('pipeline',null);renderPipeline()">返回看板</button>
         </div>
       </div>
 
-      <!-- Qualified suggestion banner -->
+      <!-- 已評估提示 banner -->
       <div class="suggestion-banner" id="qualified-banner" style="display:none">
-        <span>This lead is <b>Qualified</b> — ready for AI analysis. Running analysis now will auto-populate the company report and advance to In Analysis.</span>
-        <button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">Run Analysis</button>
+        <span>此案件已<b>評估完成</b>，可以執行 AI 分析。執行後將自動填入公司報告並推進至「分析中」。</span>
+        <button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">立即分析</button>
       </div>
 
       <div class="ldh-tabs">
-        <div class="ldh-tab on" onclick="switchDetailTab('overview',this)">Overview</div>
-        <div class="ldh-tab" onclick="switchDetailTab('analysis',this)">AI Analysis</div>
-        <div class="ldh-tab" onclick="switchDetailTab('notes',this)">Interaction Log</div>
+        <div class="ldh-tab on" onclick="switchDetailTab('overview',this)">概覽</div>
+        <div class="ldh-tab" onclick="switchDetailTab('analysis',this)">AI 分析</div>
+        <div class="ldh-tab" onclick="switchDetailTab('notes',this)">互動記錄</div>
       </div>
 
       <div class="detail-tab-body">
-        <!-- Overview -->
+        <!-- 概覽 -->
         <div class="dtab-content on" id="dt-overview">
           <div class="card">
-            <div class="ch"><span class="ch-label">Company Details</span></div>
+            <div class="ch"><span class="ch-label">公司資料</span></div>
             <div class="cb" id="ld-details"></div>
           </div>
           <div class="card">
-            <div class="ch"><span class="ch-label">Pipeline Progress</span></div>
+            <div class="ch"><span class="ch-label">流程進度</span></div>
             <div class="cb">
               <div class="flow-row" id="ld-flow"></div>
             </div>
           </div>
         </div>
 
-        <!-- Analysis -->
+        <!-- AI 分析 -->
         <div class="dtab-content" id="dt-analysis">
           <div id="no-analysis" style="border:1px dashed var(--gl);padding:2rem;text-align:center;color:var(--muted);font-size:.84rem">
-            No analysis run yet.
-            <div style="margin-top:.75rem"><button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">Run AI Analysis</button></div>
+            尚未執行 AI 分析。
+            <div style="margin-top:.75rem"><button class="btn btn-gold btn-sm" onclick="goRunAnalysis()">執行 AI 分析</button></div>
           </div>
           <div id="has-analysis" style="display:none">
             <div class="result-grid">
-              <div class="rb"><div class="rb-h">Company Overview</div><div class="rb-b" id="ra-overview">—</div></div>
-              <div class="rb"><div class="rb-h">Key Risks</div><div class="rb-b" id="ra-risks">—</div></div>
-              <div class="rb"><div class="rb-h">Valuation Reference</div><div class="rb-b" id="ra-valuation">—</div></div>
-              <div class="rb"><div class="rb-h">Suggested Buyer Profile</div><div class="rb-b" id="ra-buyers">—</div></div>
+              <div class="rb"><div class="rb-h">公司概況</div><div class="rb-b" id="ra-overview">—</div></div>
+              <div class="rb"><div class="rb-h">主要風險</div><div class="rb-b" id="ra-risks">—</div></div>
+              <div class="rb"><div class="rb-h">估值參考</div><div class="rb-b" id="ra-valuation">—</div></div>
+              <div class="rb"><div class="rb-h">建議買方類型</div><div class="rb-b" id="ra-buyers">—</div></div>
             </div>
-            <div class="rb"><div class="rb-h">Due Diligence Checklist</div><div class="rb-b" id="ra-dd">—</div></div>
+            <div class="rb"><div class="rb-h">盡職調查清單</div><div class="rb-b" id="ra-dd">—</div></div>
             <div class="btn-row">
-              <button class="btn btn-ink btn-sm" onclick="switchView('memo',null);prefillMemo()">Generate Memo</button>
-              <button class="btn btn-outline btn-sm" onclick="goRunAnalysis()">Re-run Analysis</button>
+              <button class="btn btn-ink btn-sm" onclick="switchView('memo',null);prefillMemo()">生成備忘錄</button>
+              <button class="btn btn-outline btn-sm" onclick="goRunAnalysis()">重新分析</button>
             </div>
           </div>
         </div>
 
-        <!-- Notes -->
+        <!-- 互動記錄 -->
         <div class="dtab-content" id="dt-notes">
           <div class="card">
-            <div class="ch"><span class="ch-label">Interaction Log</span>
-              <button class="btn btn-outline btn-sm" onclick="addNote()">Add Note</button>
+            <div class="ch"><span class="ch-label">互動記錄</span>
+              <button class="btn btn-outline btn-sm" onclick="addNote()">新增備註</button>
             </div>
             <div class="cb" id="ld-notes"></div>
           </div>
@@ -132,50 +132,55 @@
       </div>
     </div>
 
-    <!-- ════ ANALYSIS HUB ════ -->
+    <!-- ════ AI 分析中心 ════ -->
     <div id="view-analysis-hub" class="view">
-      <div class="view-title">Analysis Hub</div>
-      <div class="view-sub">Upload company financials or paste data. The system enriches with public information via Manus, then Claude generates a structured analysis — company overview, key risks, valuation reference, and due diligence checklist.</div>
+      <div class="view-title">AI 分析中心</div>
+      <div class="view-sub">上傳公司財報或貼上財務數據。系統透過 Manus 補充公開資料，再由 Claude 生成結構化分析報告，涵蓋公司概況、主要風險、估值參考與盡職調查清單。</div>
 
       <div class="flow-row" style="gap:0">
-        <div class="fs active-fs" id="hf1"><div class="fs-n">01</div><div class="fs-t">Upload Data</div><div class="fs-d">PDF or text input</div></div>
+        <div class="fs active-fs" id="hf1"><div class="fs-n">01</div><div class="fs-t">上傳資料</div><div class="fs-d">PDF 或文字輸入</div></div>
         <div class="fa">›</div>
-        <div class="fs" id="hf2"><div class="fs-n">02</div><div class="fs-t">Manus Enrichment</div><div class="fs-d">Public data, registry, news</div></div>
+        <div class="fs" id="hf2"><div class="fs-n">02</div><div class="fs-t">Manus 資料補充</div><div class="fs-d">公開資料、工商登記、新聞</div></div>
         <div class="fa">›</div>
-        <div class="fs" id="hf3"><div class="fs-n">03</div><div class="fs-t">Claude Analysis</div><div class="fs-d">Metrics, risks, valuation</div></div>
+        <div class="fs" id="hf3"><div class="fs-n">03</div><div class="fs-t">Claude 分析</div><div class="fs-d">財務指標、風險、估值</div></div>
         <div class="fa">›</div>
-        <div class="fs" id="hf4"><div class="fs-n">04</div><div class="fs-t">Structured Output</div><div class="fs-d">Report ready for review</div></div>
+        <div class="fs" id="hf4"><div class="fs-n">04</div><div class="fs-t">結構化輸出</div><div class="fs-d">報告待顧問審閱</div></div>
         <div class="fa">›</div>
-        <div class="fs" id="hf5"><div class="fs-n">05</div><div class="fs-t">Save to CRM</div><div class="fs-d">Linked to Lead card</div></div>
+        <div class="fs" id="hf5"><div class="fs-n">05</div><div class="fs-t">儲存至 CRM</div><div class="fs-d">連結至案件資料卡</div></div>
       </div>
 
       <div class="card">
-        <div class="ch"><span class="ch-label">Company Input</span></div>
+        <div class="ch"><span class="ch-label">公司資料輸入</span></div>
         <div class="cb">
           <div class="r2">
-            <div class="field"><label class="fl">Company Name</label><input type="text" id="h-company" placeholder="e.g. ABC Manufacturing Co."></div>
-            <div class="field"><label class="fl">Industry</label><input type="text" id="h-industry" placeholder="e.g. Precision Manufacturing"></div>
+            <div class="field"><label class="fl">公司名稱</label><input type="text" id="h-company" placeholder="例：億騰精密工業股份有限公司"></div>
+            <div class="field"><label class="fl">產業別</label><input type="text" id="h-industry" placeholder="例：精密製造、半導體、生技醫療"></div>
           </div>
           <div class="field">
-            <label class="fl">Upload Financial PDF</label>
+            <label class="fl">上傳財務 PDF</label>
             <div class="upzone">
               <input type="file" accept=".pdf" onchange="handlePdf(this)">
               <div class="up-icon">PDF</div>
-              <div class="up-lbl">Click or drag to upload</div>
-              <div class="up-hint">Annual report · Financial summary · Any PDF</div>
+              <div class="up-lbl">點擊或拖曳上傳</div>
+              <div class="up-hint">年報 · 財務摘要 · 任何 PDF</div>
               <div class="file-tag" id="h-filetag"></div>
             </div>
           </div>
-          <div class="field"><label class="fl">Or paste financial data / notes</label>
-            <textarea id="h-text" rows="4" placeholder="Revenue: NT$450M (+18% YoY)&#10;Net income: NT$38M · EBITDA: NT$72M&#10;Key clients: Client A (35%), Client B (22%)&#10;Founded 1998 · 280 employees…"></textarea>
+          <div class="field"><label class="fl">或貼上財務數據 / 備註</label>
+            <textarea id="h-text" rows="4" placeholder="年度營收：新台幣 4.5 億元（年增 18%）&#10;年度淨利：3,800 萬元・EBITDA：7,200 萬元&#10;主要客戶：客戶 A（35%）、客戶 B（22%）&#10;成立 1998 年・員工 280 人…"></textarea>
           </div>
           <div class="r2">
-            <div class="field"><label class="fl">Analysis Focus</label><input type="text" id="h-focus" placeholder="e.g. Customer concentration, cashflow quality"></div>
-            <div class="field"><label class="fl">Transaction Type</label>
-              <select id="h-type"><option value="full_acquisition">Full Acquisition</option><option value="partial">Partial Stake</option><option value="merger">Merger</option><option value="partnership">Strategic Partnership</option></select>
+            <div class="field"><label class="fl">分析重點</label><input type="text" id="h-focus" placeholder="例：客戶集中度、現金流品質"></div>
+            <div class="field"><label class="fl">交易類型</label>
+              <select id="h-type">
+                <option value="full_acquisition">完全收購</option>
+                <option value="partial">部分股權</option>
+                <option value="merger">合併</option>
+                <option value="partnership">策略合作</option>
+              </select>
             </div>
           </div>
-          <button class="btn btn-ink" id="h-btn" onclick="runHubAnalysis()">Run Analysis</button>
+          <button class="btn btn-ink" id="h-btn" onclick="runHubAnalysis()">執行分析</button>
         </div>
       </div>
 
@@ -184,57 +189,70 @@
       <div id="h-results" style="display:none">
         <div class="card">
           <div class="ch">
-            <span class="ch-label">Analysis Output — <span id="h-res-name"></span></span>
-            <button class="btn btn-gold btn-sm" onclick="saveAnalysisToCrm()">Save to CRM</button>
+            <span class="ch-label">分析結果 — <span id="h-res-name"></span></span>
+            <button class="btn btn-gold btn-sm" onclick="saveAnalysisToCrm()">儲存至 CRM</button>
           </div>
           <div class="cb">
             <div class="result-grid">
-              <div class="rb"><div class="rb-h">Company Overview</div><div class="rb-b" id="hr-overview">—</div></div>
-              <div class="rb"><div class="rb-h">Key Risks</div><div class="rb-b" id="hr-risks">—</div></div>
-              <div class="rb"><div class="rb-h">Valuation Reference</div><div class="rb-b" id="hr-valuation">—</div></div>
-              <div class="rb"><div class="rb-h">Suggested Buyer Profile</div><div class="rb-b" id="hr-buyers">—</div></div>
+              <div class="rb"><div class="rb-h">公司概況</div><div class="rb-b" id="hr-overview">—</div></div>
+              <div class="rb"><div class="rb-h">主要風險</div><div class="rb-b" id="hr-risks">—</div></div>
+              <div class="rb"><div class="rb-h">估值參考</div><div class="rb-b" id="hr-valuation">—</div></div>
+              <div class="rb"><div class="rb-h">建議買方類型</div><div class="rb-b" id="hr-buyers">—</div></div>
             </div>
-            <div class="rb"><div class="rb-h">Due Diligence Checklist</div><div class="rb-b" id="hr-dd">—</div></div>
+            <div class="rb"><div class="rb-h">盡職調查清單</div><div class="rb-b" id="hr-dd">—</div></div>
             <div class="btn-row">
-              <button class="btn btn-ink btn-sm" onclick="saveAnalysisToCrm();switchView('memo',null);prefillMemo()">Save and Generate Memo</button>
+              <button class="btn btn-ink btn-sm" onclick="saveAnalysisToCrm();switchView('memo',null);prefillMemo()">儲存並生成備忘錄</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ════ MEMO GENERATOR ════ -->
+    <!-- ════ 文件生成 ════ -->
     <div id="view-memo" class="view">
-      <div class="view-title">Memo Generator</div>
-      <div class="view-sub">Generate a structured investment memo, seller teaser, or due diligence report. Data is pre-filled from the active lead's AI analysis — or enter manually.</div>
+      <div class="view-title">文件生成器</div>
+      <div class="view-sub">生成結構化的投資備忘錄、賣方摘要或盡職調查報告。資料會從當前案件的 AI 分析自動帶入，或手動輸入。</div>
       <div class="card">
-        <div class="ch"><span class="ch-label">Document Input</span></div>
+        <div class="ch"><span class="ch-label">文件輸入</span></div>
         <div class="cb">
           <div class="r2">
-            <div class="field"><label class="fl">Company Name</label><input type="text" id="m-company" placeholder="Company name"></div>
-            <div class="field"><label class="fl">Document Type</label>
-              <select id="m-type"><option value="investment_memo">Investment Memo</option><option value="seller_teaser">Seller Teaser</option><option value="buyer_brief">Buyer Brief</option><option value="dd_report">Due Diligence Report</option></select>
+            <div class="field"><label class="fl">公司名稱</label><input type="text" id="m-company" placeholder="公司名稱"></div>
+            <div class="field"><label class="fl">文件類型</label>
+              <select id="m-type">
+                <option value="investment_memo">投資備忘錄</option>
+                <option value="seller_teaser">賣方摘要</option>
+                <option value="buyer_brief">買方簡報</option>
+                <option value="dd_report">盡職調查報告</option>
+              </select>
             </div>
           </div>
-          <div class="field"><label class="fl">Key Information / Analysis Summary</label>
-            <textarea id="m-data" rows="6" placeholder="Paste analysis output or enter manually:&#10;&#10;Revenue: NT$450M · EBITDA: NT$72M&#10;Industry: Precision Manufacturing&#10;Key risks: customer concentration&#10;Asking range: NT$800M–1.2B…"></textarea>
+          <div class="field"><label class="fl">關鍵資訊 / 分析摘要</label>
+            <textarea id="m-data" rows="6" placeholder="貼上分析結果或手動輸入：&#10;&#10;年營收：新台幣 4.5 億元・EBITDA：7,200 萬元&#10;產業：精密製造&#10;主要風險：客戶集中度&#10;預期售價區間：新台幣 8 億–12 億元…"></textarea>
           </div>
           <div class="r2">
-            <div class="field"><label class="fl">Target Audience</label>
-              <select id="m-audience"><option value="strategic_buyer">Strategic Buyer</option><option value="pe_fund">PE / Investment Fund</option><option value="management_team">Management Team</option><option value="board">Board / Owner</option></select>
+            <div class="field"><label class="fl">目標對象</label>
+              <select id="m-audience">
+                <option value="strategic_buyer">策略買方</option>
+                <option value="pe_fund">私募 / 投資基金</option>
+                <option value="management_team">管理團隊</option>
+                <option value="board">董事會 / 企業主</option>
+              </select>
             </div>
-            <div class="field"><label class="fl">Language</label>
-              <select id="m-lang"><option value="en">English</option><option value="zh">Traditional Chinese</option></select>
+            <div class="field"><label class="fl">語言</label>
+              <select id="m-lang">
+                <option value="zh">繁體中文</option>
+                <option value="en">English</option>
+              </select>
             </div>
           </div>
-          <button class="btn btn-ink" id="m-btn" onclick="runMemo()">Generate Document</button>
+          <button class="btn btn-ink" id="m-btn" onclick="runMemo()">生成文件</button>
         </div>
       </div>
-      <div id="m-loading" style="display:none"><div class="loading-row"><div class="spinner"></div>Drafting document…</div></div>
+      <div id="m-loading" style="display:none"><div class="loading-row"><div class="spinner"></div>文件草稿生成中…</div></div>
       <div id="m-output" style="display:none">
         <div class="card">
-          <div class="ch"><span class="ch-label" id="m-output-label">Document Output</span>
-            <button class="btn btn-outline btn-sm" onclick="copyMemo()">Copy Text</button>
+          <div class="ch"><span class="ch-label" id="m-output-label">文件輸出</span>
+            <button class="btn btn-outline btn-sm" onclick="copyMemo()">複製文字</button>
           </div>
           <div class="memo-box" id="m-text"></div>
         </div>
@@ -244,28 +262,34 @@
   </main>
 </div>
 
-<!-- ADD LEAD MODAL -->
+<!-- 新增案件 Modal -->
 <div class="modal-overlay" id="add-modal" style="display:none">
   <div class="modal-box">
-    <div class="modal-title">Add New Lead</div>
+    <div class="modal-title">新增案件</div>
     <div class="r2">
-      <div class="field"><label class="fl">Company Name *</label><input type="text" id="nl-name" placeholder="Company name"></div>
-      <div class="field"><label class="fl">Industry</label><input type="text" id="nl-industry" placeholder="Industry"></div>
+      <div class="field"><label class="fl">公司名稱 *</label><input type="text" id="nl-name" placeholder="公司名稱"></div>
+      <div class="field"><label class="fl">產業別</label><input type="text" id="nl-industry" placeholder="產業別"></div>
     </div>
     <div class="r2">
-      <div class="field"><label class="fl">Stage</label>
-        <select id="nl-stage"><option>Leads</option><option>Contacted</option><option>Qualified</option><option>In Analysis</option><option>Deal</option></select>
+      <div class="field"><label class="fl">階段</label>
+        <select id="nl-stage">
+          <option>Leads</option>
+          <option>Contacted</option>
+          <option>Qualified</option>
+          <option>In Analysis</option>
+          <option>Deal</option>
+        </select>
       </div>
-      <div class="field"><label class="fl">Contact Person</label><input type="text" id="nl-contact" placeholder="Owner / rep"></div>
+      <div class="field"><label class="fl">聯絡人</label><input type="text" id="nl-contact" placeholder="企業主 / 代表人"></div>
     </div>
     <div class="r2">
-      <div class="field"><label class="fl">Revenue (est.)</label><input type="text" id="nl-revenue" placeholder="NT$XXM"></div>
-      <div class="field"><label class="fl">Employees (est.)</label><input type="text" id="nl-emp" placeholder="Number"></div>
+      <div class="field"><label class="fl">年營收（估計）</label><input type="text" id="nl-revenue" placeholder="新台幣 X 億元"></div>
+      <div class="field"><label class="fl">員工人數（估計）</label><input type="text" id="nl-emp" placeholder="人數"></div>
     </div>
-    <div class="field"><label class="fl">Initial Notes</label><textarea id="nl-notes" rows="2" placeholder="Referral source, first impression…"></textarea></div>
+    <div class="field"><label class="fl">初始備註</label><textarea id="nl-notes" rows="2" placeholder="引薦來源、第一印象…"></textarea></div>
     <div style="display:flex;gap:.75rem;margin-top:.5rem">
-      <button class="btn btn-ink" onclick="submitAddLead()">Add Lead</button>
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-ink" onclick="submitAddLead()">新增</button>
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
     </div>
   </div>
 </div>

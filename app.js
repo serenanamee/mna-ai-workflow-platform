@@ -3,6 +3,15 @@
  * Main application logic — navigation, view rendering, event handlers.
  */
 
+// ═══ 階段顯示名稱對應 ═══════════════════════════════════════════════
+const STAGE_LABELS = {
+  'Leads': '名單',
+  'Contacted': '已接觸',
+  'Qualified': '已評估',
+  'In Analysis': '分析中',
+  'Deal': '成交',
+};
+
 // ═══ STATE ═════════════════════════════════════════════════════════
 let hubPdfB64 = null;
 let activeDetailTab = 'overview';
@@ -23,7 +32,7 @@ function checkKey() {
   const isMock = !k;
   document.getElementById('api-dot').classList.toggle('ok', isReal);
   document.getElementById('api-dot').classList.toggle('mock', isMock || (!isReal && k.length === 0));
-  document.getElementById('mode-label').textContent = isReal ? 'Live' : 'Demo Mode';
+  document.getElementById('mode-label').textContent = isReal ? '即時模式' : '示範模式';
   document.getElementById('mode-label').style.color = isReal ? 'var(--green)' : 'var(--gold)';
 }
 
@@ -82,13 +91,14 @@ function renderPipeline() {
       const col = appState.leads.filter(l => l.stage === stage);
       const isGold = stage === 'In Analysis';
       const isGreen = stage === 'Deal';
+      const label = STAGE_LABELS[stage] || stage;
       return `<div class="po-col">
-        <div class="po-col-h ${isGold ? 'gold' : isGreen ? 'green' : ''}">${stage} <span style="opacity:.65;font-size:.65rem">${col.length}</span></div>
+        <div class="po-col-h ${isGold ? 'gold' : isGreen ? 'green' : ''}">${label} <span style="opacity:.65;font-size:.65rem">${col.length}</span></div>
         ${col.map(l => `<div class="po-card" onclick="openLead(${l.id})">
           <div class="po-company">${l.name}${l.analysis ? '<span class="ai-chip">AI</span>' : ''}</div>
           <div class="po-meta">${l.industry} · ${l.lastContact || '—'}</div>
         </div>`).join('')}
-        ${col.length === 0 ? '<div class="po-empty">No leads</div>' : ''}
+        ${col.length === 0 ? '<div class="po-empty">無案件</div>' : ''}
       </div>`;
     }).join('');
   } else {
@@ -97,8 +107,8 @@ function renderPipeline() {
       <div class="po-row" onclick="openLead(${l.id})">
         <div><div class="po-company">${l.name}${l.analysis ? '<span class="ai-chip">AI</span>' : ''}</div>
         <div class="po-meta">${l.industry} · ${l.revenue} · ${l.contact}</div></div>
-        <span class="stage-badge ${stageCls(l.stage)}">${l.stage}</span>
-      </div>`).join('') || '<div style="color:var(--muted);font-size:.83rem;padding:1rem">No leads in this stage.</div>';
+        <span class="stage-badge ${stageCls(l.stage)}">${STAGE_LABELS[l.stage] || l.stage}</span>
+      </div>`).join('') || '<div style="color:var(--muted);font-size:.83rem;padding:1rem">此階段目前無案件。</div>';
   }
 
   renderSidebar();
@@ -134,38 +144,34 @@ function openLead(id) {
   // Header
   document.getElementById('ld-name').textContent = lead.name;
   document.getElementById('ld-meta').innerHTML =
-    `${lead.industry} &nbsp;·&nbsp; ${lead.revenue} &nbsp;·&nbsp; ${lead.emp} employees &nbsp;·&nbsp; <span class="stage-badge ${stageCls(lead.stage)}">${lead.stage}</span>`;
+    `${lead.industry} &nbsp;·&nbsp; ${lead.revenue} &nbsp;·&nbsp; ${lead.emp} 位員工 &nbsp;·&nbsp; <span class="stage-badge ${stageCls(lead.stage)}">${STAGE_LABELS[lead.stage] || lead.stage}</span>`;
 
-  // Qualified suggestion banner
+  // 已評估提示 banner
   const banner = document.getElementById('qualified-banner');
-  if (shouldSuggestAnalysis(lead)) {
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
+  banner.style.display = shouldSuggestAnalysis(lead) ? 'flex' : 'none';
 
-  // Overview tab
+  // 概覽 tab
   document.getElementById('ld-details').innerHTML = [
-    ['Industry', lead.industry],
-    ['Revenue', lead.revenue],
-    ['Employees', lead.emp],
-    ['Contact', lead.contact],
-    ['Last Contact', lead.lastContact || '—'],
-    ['AI Analysis', lead.analysis
-      ? '<span style="color:var(--green)">Completed</span>'
-      : '<span style="color:var(--muted)">Not yet run</span>'],
+    ['產業別', lead.industry],
+    ['年營收', lead.revenue],
+    ['員工人數', lead.emp],
+    ['聯絡人', lead.contact],
+    ['最後接觸', lead.lastContact || '—'],
+    ['AI 分析', lead.analysis
+      ? '<span style="color:var(--green)">已完成</span>'
+      : '<span style="color:var(--muted)">尚未執行</span>'],
   ].map(([k, v]) => `<div class="detail-row"><span class="dk">${k}</span><span>${v}</span></div>`).join('');
 
-  // Stage flow
+  // 流程進度
   const idx = STAGES.indexOf(lead.stage);
   document.getElementById('ld-flow').innerHTML = STAGES.map((s, i) => `
     <div class="fs ${i === idx ? 'active-fs' : ''}">
       <div class="fs-n">0${i + 1}</div>
-      <div class="fs-t">${s}</div>
+      <div class="fs-t">${STAGE_LABELS[s] || s}</div>
     </div>
     ${i < STAGES.length - 1 ? '<div class="fa">›</div>' : ''}`).join('');
 
-  // Analysis tab
+  // AI 分析 tab
   if (lead.analysis) {
     document.getElementById('no-analysis').style.display = 'none';
     document.getElementById('has-analysis').style.display = 'block';
@@ -180,10 +186,10 @@ function openLead(id) {
     document.getElementById('has-analysis').style.display = 'none';
   }
 
-  // Notes tab
+  // 互動記錄 tab
   document.getElementById('ld-notes').innerHTML = lead.notes.length
     ? lead.notes.map(n => `<div class="note-item">${n}</div>`).join('')
-    : '<div style="color:var(--muted);font-size:.83rem;font-style:italic">No notes yet.</div>';
+    : '<div style="color:var(--muted);font-size:.83rem;font-style:italic">尚無互動記錄。</div>';
 
   switchDetailTab('overview', document.querySelectorAll('.ldh-tab')[0]);
   renderSidebar();
@@ -196,7 +202,7 @@ function advStage() {
 }
 
 function addNote() {
-  const n = prompt('Add interaction note:');
+  const n = prompt('新增互動備註：');
   if (!n) return;
   addNoteToLead(appState.currentLeadId, n);
   openLead(appState.currentLeadId);
@@ -239,40 +245,40 @@ async function runHubAnalysis() {
   const industry = document.getElementById('h-industry').value.trim();
   const text = document.getElementById('h-text').value.trim();
   const focus = document.getElementById('h-focus').value.trim();
-  const typeMap = { full_acquisition: 'Full Acquisition', partial: 'Partial Stake', merger: 'Merger', partnership: 'Strategic Partnership' };
+  const typeMap = { full_acquisition: '完全收購', partial: '部分股權', merger: '合併', partnership: '策略合作' };
   const type = typeMap[document.getElementById('h-type').value];
 
-  if (!company && !text && !hubPdfB64) { alert('Enter company name or data.'); return; }
+  if (!company && !text && !hubPdfB64) { alert('請輸入公司名稱或財務數據。'); return; }
 
   document.getElementById('h-btn').disabled = true;
   document.getElementById('h-results').style.display = 'none';
 
-  // Step 1 → Step 2: Manus Enrichment
+  // Step 2: Manus 資料補充
   setFlowStep(2);
   document.getElementById('h-loading').style.display = 'block';
-  document.getElementById('h-loading').innerHTML = `<div class="loading-row"><div class="spinner"></div>Enriching public data via Manus…</div>
+  document.getElementById('h-loading').innerHTML = `<div class="loading-row"><div class="spinner"></div>透過 Manus 補充公開資料中…</div>
     <div id="manus-result" style="display:none;margin-top:.75rem"></div>`;
 
   const manusData = await runManusEnrichment(company);
   document.getElementById('manus-result').style.display = 'block';
   document.getElementById('manus-result').innerHTML = `
     <div class="enrich-box">
-      <div class="enrich-title">Manus Public Data Enrichment</div>
-      <div class="enrich-row"><span class="ek">Website</span><span>${manusData.website}</span></div>
-      <div class="enrich-row"><span class="ek">News</span><span>${manusData.news}</span></div>
-      <div class="enrich-row"><span class="ek">Registry</span><span>${manusData.registry}</span></div>
-      <div class="enrich-row"><span class="ek">Industry peers</span><span>${manusData.industry}</span></div>
+      <div class="enrich-title">Manus 公開資料補充</div>
+      <div class="enrich-row"><span class="ek">官方網站</span><span>${manusData.website}</span></div>
+      <div class="enrich-row"><span class="ek">新聞動態</span><span>${manusData.news}</span></div>
+      <div class="enrich-row"><span class="ek">工商登記</span><span>${manusData.registry}</span></div>
+      <div class="enrich-row"><span class="ek">同業比較</span><span>${manusData.industry}</span></div>
     </div>`;
 
-  // Step 2 → Step 3: Claude Analysis
+  // Step 3: Claude 分析
   await new Promise(r => setTimeout(r, 600));
   setFlowStep(3);
   document.getElementById('h-loading').insertAdjacentHTML('beforeend',
-    `<div class="loading-row" style="margin-top:.5rem"><div class="spinner"></div>Claude is analysing — processing financials and generating structured report…</div>`);
+    `<div class="loading-row" style="margin-top:.5rem"><div class="spinner"></div>Claude 分析中，正在處理財務資料並生成結構化報告…</div>`);
 
   const prompt = `M&A analysis.\nCompany: ${company || 'Unknown'}\nIndustry: ${industry || '—'}\nTransaction: ${type}\nFocus: ${focus || 'General'}\nPublic enrichment data: ${JSON.stringify(manusData)}\n${text ? 'Financial data:\n' + text : ''}
 Return ONLY valid JSON: { "overview": "...", "risks": "...", "valuation": "...", "buyers": "...", "dd": "..." }
-Use bullet points with • for lists.`;
+Use bullet points with • for lists. Respond in Traditional Chinese.`;
 
   let messages;
   if (hubPdfB64) {
@@ -282,7 +288,7 @@ Use bullet points with • for lists.`;
   }
 
   try {
-    const raw = await callClaude(messages, 'You are a senior M&A advisor. Return only valid JSON with keys: overview, risks, valuation, buyers, dd.', getApiKey());
+    const raw = await callClaude(messages, '你是資深併購顧問。請以繁體中文回傳 JSON，包含 overview、risks、valuation、buyers、dd 五個欄位。', getApiKey());
     const j = safeParseAnalysis(raw);
 
     document.getElementById('hr-overview').textContent = j.overview || '—';
@@ -290,13 +296,13 @@ Use bullet points with • for lists.`;
     document.getElementById('hr-valuation').textContent = j.valuation || '—';
     document.getElementById('hr-buyers').textContent = j.buyers || '—';
     document.getElementById('hr-dd').textContent = j.dd || '—';
-    document.getElementById('h-res-name').textContent = company || 'Company';
+    document.getElementById('h-res-name').textContent = company || '公司';
     document.getElementById('h-results').style.display = 'block';
 
     appState.lastAnalysis = { company, industry, ...j };
     setFlowStep(4);
   } catch (e) {
-    alert('Analysis failed: ' + e.message);
+    alert('分析失敗：' + e.message);
     setFlowStep(1);
   } finally {
     document.getElementById('h-loading').style.display = 'none';
@@ -319,10 +325,10 @@ function prefillMemoFromLead(lead) {
   document.getElementById('m-company').value = lead.name;
   const a = lead.analysis;
   document.getElementById('m-data').value = [
-    a.overview ? 'Overview:\n' + a.overview : '',
-    a.risks ? '\nKey Risks:\n' + a.risks : '',
-    a.valuation ? '\nValuation:\n' + a.valuation : '',
-    a.buyers ? '\nSuggested Buyers:\n' + a.buyers : '',
+    a.overview ? '公司概況：\n' + a.overview : '',
+    a.risks ? '\n主要風險：\n' + a.risks : '',
+    a.valuation ? '\n估值參考：\n' + a.valuation : '',
+    a.buyers ? '\n建議買方：\n' + a.buyers : '',
   ].filter(Boolean).join('\n');
 }
 
@@ -334,10 +340,10 @@ function prefillMemo() {
     document.getElementById('m-company').value = appState.lastAnalysis.company || '';
     const a = appState.lastAnalysis;
     document.getElementById('m-data').value = [
-      a.overview ? 'Overview:\n' + a.overview : '',
-      a.risks ? '\nKey Risks:\n' + a.risks : '',
-      a.valuation ? '\nValuation:\n' + a.valuation : '',
-      a.buyers ? '\nSuggested Buyers:\n' + a.buyers : '',
+      a.overview ? '公司概況：\n' + a.overview : '',
+      a.risks ? '\n主要風險：\n' + a.risks : '',
+      a.valuation ? '\n估值參考：\n' + a.valuation : '',
+      a.buyers ? '\n建議買方：\n' + a.buyers : '',
     ].filter(Boolean).join('\n');
   }
 }
@@ -345,19 +351,29 @@ function prefillMemo() {
 async function runMemo() {
   const company = document.getElementById('m-company').value.trim();
   const data = document.getElementById('m-data').value.trim();
-  if (!data) { alert('Please enter company data.'); return; }
+  if (!data) { alert('請輸入公司資料。'); return; }
 
-  const typeMap = { investment_memo: 'Investment Memo', seller_teaser: 'Seller Teaser', buyer_brief: 'Buyer Brief', dd_report: 'Due Diligence Report' };
+  const typeMap = {
+    investment_memo: '投資備忘錄',
+    seller_teaser: '賣方摘要',
+    buyer_brief: '買方簡報',
+    dd_report: '盡職調查報告'
+  };
   const type = typeMap[document.getElementById('m-type').value];
-  const audienceMap = { strategic_buyer: 'Strategic Buyer', pe_fund: 'PE / Investment Fund', management_team: 'Management Team', board: 'Board / Owner' };
+  const audienceMap = {
+    strategic_buyer: '策略買方',
+    pe_fund: '私募基金 / 投資機構',
+    management_team: '管理團隊',
+    board: '董事會 / 企業主'
+  };
   const audience = audienceMap[document.getElementById('m-audience').value];
-  const lang = document.getElementById('m-lang').value === 'zh' ? 'Traditional Chinese' : 'English';
+  const lang = document.getElementById('m-lang').value === 'zh' ? 'Traditional Chinese（繁體中文）' : 'English';
 
   document.getElementById('m-btn').disabled = true;
   document.getElementById('m-loading').style.display = 'block';
   document.getElementById('m-output').style.display = 'none';
 
-  const prompt = `Write a professional ${type} for ${company || 'this company'}.\nAudience: ${audience}\nLanguage: ${lang}\nData:\n${data}\n\nWrite a complete, structured document. Use clear section headers. Professional M&A advisory tone. No placeholder text.`;
+  const prompt = `請為${company || '此公司'}撰寫一份專業的${type}。\n目標對象：${audience}\n語言：${lang}\n資料：\n${data}\n\n請撰寫完整、結構清晰的文件，使用明確的段落標題，以專業的併購顧問語氣呈現，不要使用佔位符號文字。`;
 
   try {
     const text = await callClaudeMemo([{ role: 'user', content: prompt }], getApiKey());
@@ -365,7 +381,7 @@ async function runMemo() {
     document.getElementById('m-output-label').textContent = type + (company ? ' — ' + company : '');
     document.getElementById('m-output').style.display = 'block';
   } catch (e) {
-    alert('Generation failed: ' + e.message);
+    alert('生成失敗：' + e.message);
   } finally {
     document.getElementById('m-loading').style.display = 'none';
     document.getElementById('m-btn').disabled = false;
@@ -374,7 +390,7 @@ async function runMemo() {
 
 function copyMemo() {
   navigator.clipboard.writeText(document.getElementById('m-text').textContent)
-    .then(() => alert('Copied to clipboard.'));
+    .then(() => alert('已複製至剪貼簿。'));
 }
 
 // ═══ ADD LEAD MODAL ═════════════════════════════════════════════════
@@ -383,7 +399,7 @@ function closeModal() { document.getElementById('add-modal').style.display = 'no
 
 function submitAddLead() {
   const name = document.getElementById('nl-name').value.trim();
-  if (!name) { alert('Company name required.'); return; }
+  if (!name) { alert('請輸入公司名稱。'); return; }
   addLead({
     name,
     industry: document.getElementById('nl-industry').value.trim(),
