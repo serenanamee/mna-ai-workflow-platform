@@ -7,7 +7,6 @@
 const STAGE_LABELS = {
   'Leads': '名單',
   'Contacted': '已接觸',
-  'Qualified': '已評估',
   'In Analysis': '分析中',
   'Deal': '成交',
 };
@@ -288,7 +287,7 @@ Use bullet points with • for lists. Respond in Traditional Chinese.`;
   }
 
   try {
-    const raw = await callClaude(messages, '你是資深併購顧問。請以繁體中文回傳 JSON，包含 overview、risks、valuation、buyers、dd 五個欄位。', getApiKey());
+    const raw = await callClaude(messages, '你是資深併購顧問。只回傳純 JSON，不要加 ```json 或任何其他文字。格式：{"overview":"...","risks":"...","valuation":"...","buyers":"...","dd":"..."}', getApiKey());
     const j = safeParseAnalysis(raw);
 
     document.getElementById('hr-overview').textContent = j.overview || '—';

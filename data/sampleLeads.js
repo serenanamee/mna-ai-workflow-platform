@@ -24,7 +24,7 @@ const SAMPLE_LEADS = [
     id: 2,
     name: '全球連鎖服務',
     industry: '零售服務',
-    stage: 'Qualified',
+    stage: 'Contacted',
     contact: '陳淑芬',
     revenue: '新台幣 1.2 億元',
     emp: '85',

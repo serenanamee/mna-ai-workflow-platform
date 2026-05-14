@@ -73,14 +73,19 @@ const MOCK_MANUS = {
 // ─── Safe JSON parser ────────────────────────────────────────────────────────
 function safeParseAnalysis(raw) {
   try {
-    return JSON.parse(raw.replace(/```json|```/g, '').trim());
+    const cleaned = raw
+      .replace(/```json|```/g, '')
+      .trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    return JSON.parse(cleaned);
   } catch {
     return {
       overview: raw,
-      risks: 'Could not parse structured output — needs manual review.',
-      valuation: 'Not generated',
-      buyers: 'Not generated',
-      dd: 'Not generated',
+      risks: '—',
+      valuation: '—',
+      buyers: '—',
+      dd: '—',
     };
   }
 }
@@ -106,11 +111,11 @@ async function callClaude(messages, system, apiKey) {
    * The backend stores ANTHROPIC_API_KEY in .env and proxies to Anthropic.
    * This avoids exposing the key in the browser.
    */
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('http://localhost:3000/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 2000,
       system: system || '',
       messages,
@@ -123,7 +128,10 @@ async function callClaude(messages, system, apiKey) {
   }
 
   const d = await res.json();
-  return d.content.map(c => c.text || '').join('');
+  const raw = d.content.map(c => c.text || '').join('');
+  const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+  console.log('Claude cleaned output:', cleaned);
+  return cleaned;
 }
 
 async function callClaudeMemo(messages, apiKey) {
@@ -132,13 +140,13 @@ async function callClaudeMemo(messages, apiKey) {
     return MOCK_MEMO;
   }
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('http://localhost:3000/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 2000,
-      system: 'You are a senior M&A advisor writing professional financial documents.',
+      system: '你是資深併購顧問，專精台灣中小企業併購交易。請用繁體中文撰寫專業的併購文件，格式清晰，語氣專業。',
       messages,
     }),
   });
@@ -149,5 +157,6 @@ async function callClaudeMemo(messages, apiKey) {
   }
 
   const d = await res.json();
+  if (!d.content) throw new Error(JSON.stringify(d));
   return d.content.map(c => c.text || '').join('');
 }

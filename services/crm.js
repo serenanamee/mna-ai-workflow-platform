@@ -3,7 +3,7 @@
  * Centralised state management for the CRM pipeline.
  */
 
-const STAGES = ['Leads', 'Contacted', 'Qualified', 'In Analysis', 'Deal'];
+const STAGES = ['Leads', 'Contacted', 'In Analysis', 'Deal'];
 
 const appState = {
   leads: [],

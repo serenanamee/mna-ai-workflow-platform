@@ -11,11 +11,9 @@
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="hdr-logo"><span class="hdr-num">168</span> 企業併購平台</div>
+  <div class="hdr-logo" onclick="switchView('pipeline',null)" style="cursor:pointer"><span class="hdr-num">168</span> 企業併購平台</div>
   <nav class="hdr-nav">
     <button class="hdr-tab on" onclick="switchView('pipeline',this)">案件總覽</button>
-    <button class="hdr-tab" onclick="switchView('analysis-hub',this)">AI 分析中心</button>
-    <button class="hdr-tab" onclick="switchView('memo',this)">文件生成</button>
   </nav>
   <div class="hdr-right">
     <div class="api-wrap">
@@ -33,9 +31,6 @@
     <div class="sb-section">案件列表</div>
     <div id="sb-list"></div>
     <div class="sb-add" onclick="openAddLeadModal()">+ 新增案件</div>
-    <div class="sb-section" style="margin-top:6px">快捷操作</div>
-    <div class="sb-item" onclick="switchView('analysis-hub',null)"><span>執行 AI 分析</span></div>
-    <div class="sb-item" onclick="switchView('memo',null);prefillMemo()"><span>生成文件</span></div>
   </aside>
 
   <main class="main-area">
@@ -46,7 +41,6 @@
         <div class="ps-stage on" onclick="filterPipeline('all',this)">全部 <span class="ps-count" id="pc-all"></span></div>
         <div class="ps-stage" onclick="filterPipeline('Leads',this)">名單 <span class="ps-count" id="pc-Leads"></span></div>
         <div class="ps-stage" onclick="filterPipeline('Contacted',this)">已接觸 <span class="ps-count" id="pc-Contacted"></span></div>
-        <div class="ps-stage" onclick="filterPipeline('Qualified',this)">已評估 <span class="ps-count" id="pc-Qualified"></span></div>
         <div class="ps-stage" onclick="filterPipeline('In Analysis',this)">分析中 <span class="ps-count" id="pc-In-Analysis"></span></div>
         <div class="ps-stage" onclick="filterPipeline('Deal',this)">成交 <span class="ps-count" id="pc-Deal"></span></div>
       </div>
@@ -269,7 +263,6 @@
         <select id="nl-stage">
           <option>Leads</option>
           <option>Contacted</option>
-          <option>Qualified</option>
           <option>In Analysis</option>
           <option>Deal</option>
         </select>
